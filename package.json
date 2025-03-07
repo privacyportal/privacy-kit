@@ -37,6 +37,13 @@
     "url": "https://github.com/privacyportal/privacy-kit/issues"
   },
   "homepage": "https://github.com/privacyportal/privacy-kit#readme",
+  "keywords": [
+    "privacy",
+    "email-alias",
+    "privacy-alias",
+    "hide-my-email",
+    "subscribe-anonymously"
+  ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.26.0",
     "@typescript-eslint/parser": "^8.26.0",
