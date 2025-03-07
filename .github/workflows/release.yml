@@ -10,6 +10,10 @@ jobs:
     if: github.repository_owner == 'privacyportal' && github.event.repository.name == 'privacy-kit'
     runs-on: ubuntu-latest
 
+    permissions:
+      # required by action-gh-release
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,8 +31,9 @@ jobs:
       - name: Create Tag
         id: create_tag
         uses: butlerlogic/action-autotag@a825539276d173dbaa8d39fb45024d85d292f4f3 # v1.1.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
           strategy: package
           tag_prefix: 'v'
 
