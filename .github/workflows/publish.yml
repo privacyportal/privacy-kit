@@ -13,11 +13,6 @@ jobs:
     if: github.repository_owner == 'privacyportal' && github.ref == 'refs/heads/production' && github.event.repository.name == 'privacy-kit'
     runs-on: ubuntu-latest
 
-    permissions:
-      # Give the default GITHUB_TOKEN write permission to commit and push the
-      # added or changed files to the repository.
-      contents: write
-
     steps:
       # we take the exact client version from the workflow input
       - uses: actions/checkout@v4
@@ -53,6 +48,7 @@ jobs:
           commit_user_name: "github-actions[bot]"
           commit_user_email: "41898282+github-actions[bot]@users.noreply.github.com"
           commit_message: "docs: Update CDN to ${{ github.ref_name }} and SRI hash"
+          token: ${{ secrets._GITHUB_PERSONAL_ACCESS_TOKEN }}
 
       - name: Publish to npm
         run: npm publish
