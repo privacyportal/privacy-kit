@@ -22,4 +22,6 @@ In order to get a `client_id` you must register your app (or website) on [Privac
   a. Add a DNS record on your domain in order to verify your domain. Domain verification might take some time for the DNS data to propagate (in some cases, it can take more than 10 mins).
   b. In case you expect to send emails to users from other domains you own, you must add them and verify them under `Registered Domains`.
 
+![OAuth Domain Verification](./assets/oauth-domain-verification.png)
+
 Note that the privacy-kit library only supports `Public` clients at the current time. For the use cases of _Hide My Email_ and _Subscribe Anonymously_, the `Public` client can work for all websites and applications.

@@ -66,7 +66,7 @@ PrivacyKit.run({
 
 Privacy-Kit authorizes users using Privacy Portal's Open Authentication service. When a user requests a new alias, a Privacy Portal popup appears allowing users to securely authenticate with [Privacy Portal](https://privacyportal.org) and authorize your application to receive an email alias for the user.
 
-In order to get a client_id, you must register your website as an OAuth Application on Privacy Portal. [Learn More](docs/app-registration.md)
+In order to get a `client_id`, you must register your website as an OAuth Application on Privacy Portal. [Learn More](docs/app-registration.md)
 
 ## Features
 
