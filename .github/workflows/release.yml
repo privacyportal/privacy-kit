@@ -48,7 +48,7 @@ jobs:
 
       - name: Trigger Workflow
         if: steps.create_tag.outputs.tagcreated == 'yes'
-        run: "gh workflow run publish.yml --repo '${{ github.repository_owner }}/${{ github.event.repository.name }}' --ref production -f ref=${{ steps.create_tag.outputs.tagname }}"
+        run: "gh workflow run privacy-kit-publish.yml --repo '${{ github.repository_owner }}/client-deployer' --ref production -f ref=${{ steps.create_tag.outputs.tagname }}"
         shell: bash
         env:
           GH_TOKEN: ${{ secrets._GITHUB_PERSONAL_ACCESS_TOKEN }}
