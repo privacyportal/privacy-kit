@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <script src="/privacy-kit.umd.js"></script>
+    <script>
+      window.PrivacyKit.run({
+        client_id: 'f3d20ab0-5e61-4618-9136-629906d4dc5a'
+      });
+    </script>
+    <style>
+      body, form {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      body {
+        height: 100vh;
+        padding: 0px 20%;
+        align-items: center;
+        background-color: #ccc;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
+      }
+
+      form {
+        width: 70%;
+        padding: 1.5rem;
+        align-items: stretch;
+        background-color: white;
+        gap: 0.5rem;
+        border-radius: 10px;
+      }
+
+      form > * {
+        height: 40px;
+        border-radius: 5px;
+      }
+
+      h2 {
+        margin-top: 0px;
+        margin-bottom: 0.5rem;
+      }
+
+      button {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <form class="elementor-form" method="post" name="New Form" onsubmit="alert('submitted')">
+      <h2>Sign Up</h2>
+      <input type="hidden" name="form_id" value="5b766cf">
+      <input type="email" name="form_fields[email]" id="form-field-email" placeholder="Email" required="required">
+      <input type="password" name="form_fields[password]" id="form-field-password" placeholder="Password" required="required">
+      <button type="submit">Register</button>
+    </form>
+    <br/>
+    <a href="./newsletter">go to newsletter</a>
+  </body>
+</html>

@@ -1,0 +1,64 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository.
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build package
+        run: npm run build
+
+      - name: Update README with SRI Hash
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          MAJOR_VERSION=$(echo "$VERSION" | cut -d'.' -f1)
+          HASH=$(openssl dgst -sha384 -binary dist/privacy-kit.umd.js | openssl base64 -A)
+          sed -i -r "s|@privacy-kit@[0-9]+[.][0-9]+[.][0-9]+/|@privacy-kit@$VERSION/|g" README.md
+          sed -i -r "s|@privacy-kit@[0-9]+/|@privacy-kit@$MAJOR_VERSION/|g" README.md
+          sed -i -r "s|sha384-[A-Za-z0-9+/=]*|sha384-$HASH|g" README.md
+
+      - name: "Push README changes"
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          file_pattern: "README.md"
+          commit_author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "41898282+github-actions[bot]@users.noreply.github.com"
+          commit_message: "docs: Update CDN to ${{ github.ref_name }} and SRI hash"
+
+      - name: Publish to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/*.js
