@@ -1,13 +1,16 @@
 name: Publish to npm
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      ref:
+        required: true
+        description: repo ref
+        type: string
 
 jobs:
   build-and-publish:
-    if: github.repository_owner == 'privacyportal' && github.event.repository.name == 'privacy-kit'
+    if: github.repository_owner == 'privacyportal' && github.ref == 'refs/heads/production' && github.event.repository.name == 'privacy-kit'
     runs-on: ubuntu-latest
 
     permissions:
@@ -16,23 +19,22 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      # we take the exact client version from the workflow input
+      - uses: actions/checkout@v4
+        with:
+          token: "${{ secrets._GITHUB_PERSONAL_ACCESS_TOKEN }}"
+          ref: "${{ github.event.inputs.ref }}"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
 
-      - name: Run tests
-        run: npm test
+      - run: npm test
 
-      - name: Build package
-        run: npm run build
+      - run: npm run build
 
       - name: Update README with SRI Hash
         run: |
@@ -56,10 +58,3 @@ jobs:
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          files: |
-            dist/*.js

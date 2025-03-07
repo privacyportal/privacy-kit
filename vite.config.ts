@@ -11,6 +11,8 @@ const LICENSE_BANNER = [
 
 export default defineConfig({
   build: {
+    outDir: 'dist',
+    emptyOutDir: true,
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'PrivacyKit',
