@@ -19,17 +19,17 @@ const INJECTABLE_EMAIL_INPUT_SCOPE = EMAIL_INPUT_SCOPES.map(
   (scope) => `${scope}:not([data-pp])`,
 ).join(', ');
 
-const isFirefoxAndroid = ((ua) =>
-  ua.indexOf('firefox') > -1 && ua.indexOf('android') > -1)(
-  navigator.userAgent.toLowerCase(),
-);
+const isFirefoxAndroid = function (navigator: Navigator): boolean {
+  const ua = navigator.userAgent.toLowerCase();
+  return ua.indexOf('firefox') > -1 && ua.indexOf('android') > -1;
+}
 
 const inputDelegate = delegate<HTMLInputElement>(INJECTABLE_EMAIL_INPUT_SCOPE);
 
 async function injectDataList(inputElement: HTMLInputElement) {
   const datalistId = `pp-${window.crypto.randomUUID().substring(0, 8)}`;
 
-  if (isFirefoxAndroid) {
+  if (isFirefoxAndroid(navigator)) {
     const option = document.createElement('li');
     option.innerText = 'Hide my Email';
     option.style.padding = '3px';
@@ -187,21 +187,30 @@ function injectDataListOnFocus(containerElement: HTMLElement | Document) {
   }
 }
 
+function injectDataListOnFocusWithinIFrames() {
+  // inject datalist when focused on input elements inside iframes
+  [...Array.from(document.querySelectorAll('iframe'))].map((iframe) => {
+    try {
+      const iframeDocument =
+        iframe?.contentDocument || iframe?.contentWindow?.document;
+      // ensure iframe is accessible
+      if (iframeDocument?.addEventListener) {
+        injectDataListOnFocus(iframeDocument);
+      }
+    } catch {
+      // do nothing
+    }
+  });
+}
+
 export function enableHideMyEmail() {
   window.addEventListener('load', () => {
     detectAndInjectDataList();
-    // inject datalist when focused on input elements inside iframes
-    [...Array.from(document.querySelectorAll('iframe'))].map((iframe) => {
-      try {
-        const iframeDocument =
-          iframe?.contentDocument || iframe?.contentWindow?.document;
-        // ensure iframe is accessible
-        if (iframeDocument?.addEventListener) {
-          injectDataListOnFocus(iframeDocument);
-        }
-      } catch {
-        // do nothing
-      }
-    });
+    injectDataListOnFocusWithinIFrames();
   });
+
+  if (document.readyState === 'complete') {
+    detectAndInjectDataList();
+    injectDataListOnFocusWithinIFrames();
+  }
 }
