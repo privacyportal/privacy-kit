@@ -8,7 +8,7 @@ export function delegate<T>(selector: string) {
 }
 
 export function setInputValue(
-  inputEl: HTMLInputElement | null,
+  inputEl: HTMLInputElement | null | undefined,
   value: string | null,
 ) {
   if (inputEl && value) {
@@ -18,4 +18,8 @@ export function setInputValue(
     return true;
   }
   return false;
+}
+
+export function isElementDisplayed(element: HTMLElement): boolean {
+  return element.offsetWidth !== 0 || element.offsetHeight !== 0;
 }
