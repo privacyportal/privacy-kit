@@ -17,6 +17,7 @@ const EMAIL_INPUT_SCOPE = EMAIL_INPUT_SCOPES.map(
 
 const buttonDelegate = delegate<HTMLButtonElement>(
   ACTIONABLE_SUB_ANON_BUTTON_SCOPE,
+  true,
 );
 
 async function handleSubscribeEvent(buttonElement: HTMLButtonElement) {

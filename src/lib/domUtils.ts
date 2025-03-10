@@ -1,8 +1,11 @@
-export function delegate<T>(selector: string) {
+export function delegate<T>(selector: string, closest?: boolean) {
   return (cb: (targetEl: T) => void) => {
     return (e: Event) => {
       const target = e?.target as HTMLElement;
-      if (target) return target.matches(selector) && cb(target as T);
+      if (target)
+        return (
+          target[closest ? 'closest' : 'matches'](selector) && cb(target as T)
+        );
     };
   };
 }
