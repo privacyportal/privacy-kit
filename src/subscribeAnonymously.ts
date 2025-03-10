@@ -1,5 +1,5 @@
 import { EMAIL_INPUT_SCOPES } from './hideMyEmail';
-import { delegate, setInputValue } from './lib/domUtils';
+import { delegate, isElementDisplayed, setInputValue } from './lib/domUtils';
 import { displayError } from './lib/errors';
 import { getAlias } from './lib/mailRelay';
 
@@ -24,9 +24,11 @@ async function handleSubscribeEvent(buttonElement: HTMLButtonElement) {
     const formEl = buttonElement.closest('form');
     if (!formEl) return;
 
-    const emailInputEl = formEl.querySelector(
-      EMAIL_INPUT_SCOPE,
-    ) as HTMLInputElement | null;
+    const emailInputEl = [
+      ...Array.from(
+        formEl.querySelectorAll<HTMLInputElement>(EMAIL_INPUT_SCOPE),
+      ),
+    ].find(isElementDisplayed);
 
     if (setInputValue(emailInputEl, await getAlias())) {
       if (formEl.dispatchEvent(new Event('submit', { cancelable: true }))) {

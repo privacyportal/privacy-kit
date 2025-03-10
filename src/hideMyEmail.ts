@@ -1,4 +1,4 @@
-import { delegate, setInputValue } from './lib/domUtils.js';
+import { delegate, isElementDisplayed, setInputValue } from './lib/domUtils.js';
 import { displayError } from './lib/errors.js';
 import { getAlias } from './lib/mailRelay.js';
 
@@ -22,7 +22,7 @@ const INJECTABLE_EMAIL_INPUT_SCOPE = EMAIL_INPUT_SCOPES.map(
 const isFirefoxAndroid = function (navigator: Navigator): boolean {
   const ua = navigator.userAgent.toLowerCase();
   return ua.indexOf('firefox') > -1 && ua.indexOf('android') > -1;
-}
+};
 
 const inputDelegate = delegate<HTMLInputElement>(INJECTABLE_EMAIL_INPUT_SCOPE);
 
@@ -167,11 +167,13 @@ async function injectDataList(inputElement: HTMLInputElement) {
 
 export function detectAndInjectDataList() {
   for (const inputElement of Array.from(
-    document.querySelectorAll(INJECTABLE_EMAIL_INPUT_SCOPE),
+    document.querySelectorAll<HTMLInputElement>(INJECTABLE_EMAIL_INPUT_SCOPE),
   )) {
-    injectDataList(inputElement as HTMLInputElement).catch((e) => {
-      console.error(e);
-    });
+    if (isElementDisplayed(inputElement)) {
+      injectDataList(inputElement as HTMLInputElement).catch((e) => {
+        console.error(e);
+      });
+    }
   }
 }
 
