@@ -1,12 +1,17 @@
 # privacy-kit
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://privacyportal.github.io/privacy-kit-demo/index)
 
 A lightweight browser library for integrating awesome privacy features to your website, proudly offered as Free and Open Source Software (FOSS) by our team at [Privacy Portal](https://privacyportal.org).
 
 Features in this library could require users to sign-in or register free accounts on [Privacy Portal](https://privacyportal.org). This account registration is required for the operation of the user requested features.
 
 Please check our [Privacy Policy](https://privacyportal.org/privacy) and [Terms Of Service](https://privacyportal.org/tos) for more information.
+
+## Live Demo
+
+🚀 Experience privacy-kit live: [privacyportal.github.io/privacy-kit-demo](https://privacyportal.github.io/privacy-kit-demo/index)
 
 ## Installation
 
