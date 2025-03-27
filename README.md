@@ -56,6 +56,15 @@ PrivacyKit.run({
 ></script>
 ```
 
+**Manual + base64 encoded:**
+
+For websites created using Content Management Systems like WordPress (WP), if previous options are unavailable or restricted, you can embed privacy-kit directly into your website using Base64 encoding. In WP, this can be done by adding a 'Custom HTML' block and including a `<script>` tag with the Base64-encoded library code.
+
+```html
+<!-- replace {{BASE64_ENCODED_LIB}} with the base64 encoded content of privacy-kit.umd.js -->
+<script src="data:application/javascript;base64,{{BASE64_ENCODED_LIB}}"></script>
+```
+
 ## Configuration
 
 ```js
