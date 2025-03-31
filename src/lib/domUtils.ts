@@ -12,7 +12,7 @@ export function delegate<T>(selector: string, closest?: boolean) {
 
 export function setInputValue(
   inputEl: HTMLInputElement | null | undefined,
-  value: string | null,
+  value: string | null | undefined,
 ) {
   if (inputEl && value) {
     inputEl.value = value;
@@ -25,4 +25,8 @@ export function setInputValue(
 
 export function isElementDisplayed(element: HTMLElement): boolean {
   return element.offsetWidth !== 0 || element.offsetHeight !== 0;
+}
+
+export function filterEnabledScopes(scopes: string[]): string {
+  return scopes.map((scope) => `${scope}:not(:disabled)`).join(', ');
 }

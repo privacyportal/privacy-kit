@@ -1,18 +1,19 @@
 import { delegate, isElementDisplayed, setInputValue } from './lib/domUtils.js';
 import { displayError } from './lib/errors.js';
-import { getAlias } from './lib/mailRelay.js';
+import { getUserInfo } from './lib/mailRelay.js';
 
 let detectedInput: HTMLInputElement;
 
 const DATALIST_SUGGESTION = '*****@pportal.io';
 
+export const TEXT_INPUT_SCOPE = 'input[type=text]';
 export const EMAIL_INPUT_SCOPES = [
-  'input[type=email]',
-  'input[type=text][id*=email]',
-  'input[type=text][name*=email]',
-  'input[type=text][name*=username]',
-  'input[type=text][name*=login]',
-  'input[type=text][placeholder*=email]',
+  `input[type=email]`,
+  `${TEXT_INPUT_SCOPE}[id*=email]`,
+  `${TEXT_INPUT_SCOPE}[name*=email]`,
+  `${TEXT_INPUT_SCOPE}[name*=username]`,
+  `${TEXT_INPUT_SCOPE}[name*=login]`,
+  `${TEXT_INPUT_SCOPE}[placeholder*=email]`,
 ];
 
 const INJECTABLE_EMAIL_INPUT_SCOPE = EMAIL_INPUT_SCOPES.map(
@@ -109,7 +110,8 @@ async function injectDataList(inputElement: HTMLInputElement) {
         inputElement.value = '';
         detectedInput = inputElement;
         list.style.visibility = 'hidden';
-        setInputValue(detectedInput, await getAlias());
+        const { email } = await getUserInfo();
+        setInputValue(detectedInput, email);
       } catch (err) {
         displayError(err);
       }
@@ -157,7 +159,8 @@ async function injectDataList(inputElement: HTMLInputElement) {
       ) {
         inputElement.value = '';
         detectedInput = inputElement;
-        setInputValue(detectedInput, await getAlias());
+        const { email } = await getUserInfo();
+        setInputValue(detectedInput, email);
       }
     } catch (err) {
       displayError(err);

@@ -70,8 +70,8 @@ For websites created using Content Management Systems like WordPress (WP), if pr
 ```js
 PrivacyKit.run({
   client_id: "<YOUR_OAUTH_CLIENT_ID>",
-  enable_hide_my_email: true,
-  enable_subscribe_anonymoulsy: true,
+  hide_my_email: true,
+  subscribe_anonymoulsy: true,          // accepted values: [undefined, true, false, { set_name_field: true }]
   on_error: "alert"                     // accepted values: ["ignore", "alert", loggerObject]
 });
 ```
@@ -86,7 +86,7 @@ In order to get a `client_id`, you must register your website as an OAuth Applic
 
 ### Hide-My-Email
 
-Integrate _Hide My Email_ functionality to your website without requiring any browser extension or app installation. Simply install the library on your website using one of the installation steps above and make sure `enable_hide_my_email` is configured to `true` (it is enabled by default).
+Integrate _Hide My Email_ functionality to your website without requiring any browser extension or app installation. Simply install the library on your website using one of the installation steps above and make sure `hide_my_email` is configured to `true` (it is enabled by default).
 
 ![Hide My Email](./docs/assets/hide-my-email.png)
 
@@ -96,7 +96,7 @@ In order to use _Hide My Email_, you will need to register your application as a
 
 ### Subscribe Anonymously to Newsletter
 
-Allow users to subscribe anonymously to your existing newsletter using email aliases instead of their personal email addresses. Simply install the library on your website using one of the installation steps above and make sure `enable_subscribe_anonymoulsy` is configured to `true` (it is enabled by default).
+Allow users to subscribe anonymously to your existing newsletter using email aliases instead of their personal email addresses. Simply install the library on your website using one of the installation steps above and make sure `subscribe_anonymoulsy` is configured to `true` (it is enabled by default).
 
 ![Subscribe Anonymously](./docs/assets/subscribe-anonymously.png)
 

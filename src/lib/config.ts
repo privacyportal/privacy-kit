@@ -1,6 +1,8 @@
 import { AUTHORIZATION_URL, OAUTH } from './constants.js';
 import { CustomError } from './errors.js';
 
+export type AuthorizationOpts = { name_scope_required?: boolean };
+
 export interface ErrorLogger {
   error(message: string): void;
 }
@@ -17,6 +19,7 @@ export function isErrorLogger(value: any): value is ErrorLogger {
 
 class Config {
   private _client_id: string | undefined;
+  private _name_scope_required: boolean | undefined;
   private _onError: ErrorHandler;
 
   get client_id(): string | undefined {
@@ -35,6 +38,14 @@ class Config {
     this._onError = errorHandler;
   }
 
+  get name_scope_required(): boolean {
+    return this._name_scope_required || false;
+  }
+
+  set name_scope_required(name_scope_required: boolean) {
+    this._name_scope_required = name_scope_required;
+  }
+
   get redirect_uri() {
     return window.location.origin;
   }
@@ -43,12 +54,29 @@ class Config {
     return new URL(AUTHORIZATION_URL).origin;
   }
 
-  createAuthorizationURL(state: string, pkceCodeChallenge: string) {
+  getNameScopeRequired(options?: AuthorizationOpts): boolean {
+    if (options?.name_scope_required !== undefined)
+      return options?.name_scope_required;
+    return this.name_scope_required;
+  }
+
+  getScope(options?: AuthorizationOpts): string {
+    return [
+      ...OAUTH.SCOPE,
+      ...(this.getNameScopeRequired(options) ? ['name'] : []),
+    ].join(' ');
+  }
+
+  createAuthorizationURL(
+    state: string,
+    pkceCodeChallenge: string,
+    options?: AuthorizationOpts,
+  ) {
     if (!this.client_id)
       throw new CustomError({ message: 'OAuth client_id not configured.' });
     const authParams = new URLSearchParams();
     authParams.set('client_id', this.client_id);
-    authParams.set('scope', OAUTH.SCOPE);
+    authParams.set('scope', this.getScope(options));
     authParams.set('response_type', OAUTH.RESPONSE_TYPE);
     authParams.set('response_mode', OAUTH.RESPONSE_MODE);
     authParams.set('nonce', crypto.randomUUID().substring(4, 18));

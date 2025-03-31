@@ -3,3 +3,9 @@
 node_modules/
 dist/
 types/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

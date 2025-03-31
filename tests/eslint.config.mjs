@@ -1,3 +1,4 @@
+import baseConfig from '../eslint.config.mjs';
 import js from "@eslint/js";
 import prettier from "eslint-config-prettier";
 import eslintPluginPrettier from "eslint-plugin-prettier";
@@ -6,18 +7,18 @@ import tsParser from "@typescript-eslint/parser";
 import globals from "globals";
 
 export default [
+  ...baseConfig,
   {
-    files: ["src/**/*.{js,ts}"],
+    files: ["**/*.{js,ts}"],
     languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "module",
       parser: tsParser,
       parserOptions: {
-        project: "./tsconfig.json",
+        project: './tsconfig.json',
         tsconfigRootDir: import.meta.dirname
       },
       globals: {
-        ...globals.browser
+        ...globals.browser,
+        ...globals.node
       }
     },
     plugins: {
@@ -31,8 +32,5 @@ export default [
       "prettier/prettier": "error",
       "@typescript-eslint/no-explicit-any": "off",
     },
-  },
-  {
-    ignores: ["dist/**", "node_modules/**"]
   }
 ];
