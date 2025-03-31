@@ -25,7 +25,10 @@
     "lint:debug": "eslint --print-config eslint.config.mjs",
     "lint": "eslint src",
     "format": "eslint src --fix",
-    "test": "echo 'tests not yet enabled'"
+    "test:server": "vite preview --port 8800",
+    "pretest": "npx playwright install --with-deps",
+    "test": "npx playwright test",
+    "test:interactive": "npx playwright test --ui"
   },
   "repository": {
     "type": "git",
@@ -45,6 +48,8 @@
     "subscribe-anonymously"
   ],
   "devDependencies": {
+    "@playwright/test": "^1.51.1",
+    "@types/node": "^22.13.14",
     "@typescript-eslint/eslint-plugin": "^8.26.0",
     "@typescript-eslint/parser": "^8.26.0",
     "eslint": "^9.21.0",

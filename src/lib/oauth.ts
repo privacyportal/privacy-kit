@@ -1,4 +1,4 @@
-import config from './config.js';
+import config, { AuthorizationOpts } from './config.js';
 import { TOKEN_URL } from './constants.js';
 import { CustomError, DEFAULT_ERROR_ACTION, displayError } from './errors.js';
 import { bufferToBase64Url, isString } from './stringUtils.js';
@@ -80,9 +80,9 @@ async function validateTokens({
   return { id_token, access_token };
 }
 
-export async function authorize(): Promise<
-  { id_token: string; access_token: string } | undefined
-> {
+export async function authorize(
+  options?: AuthorizationOpts,
+): Promise<{ id_token: string; access_token: string } | undefined> {
   try {
     // generate state parameter
     const state = generateRandomState();
@@ -91,7 +91,11 @@ export async function authorize(): Promise<
     const codeVerifier = generatePKCECodeVerifier();
     const codeChallenge = await createPKCECodeChallenge(codeVerifier);
 
-    const authURL = config.createAuthorizationURL(state, codeChallenge);
+    const authURL = config.createAuthorizationURL(
+      state,
+      codeChallenge,
+      options,
+    );
     const popup = window.open(authURL, 'PrivacyPortalSSO');
     if (!popup)
       throw new CustomError({

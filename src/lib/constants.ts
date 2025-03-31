@@ -6,7 +6,7 @@ export const {
 } = import.meta.env;
 
 export const OAUTH = {
-  SCOPE: 'openid email',
+  SCOPE: ['openid', 'email'],
   RESPONSE_TYPE: 'code',
   RESPONSE_MODE: 'web_message',
 };
