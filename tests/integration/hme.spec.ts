@@ -14,7 +14,7 @@ test.describe('[Hide-My-Email]', () => {
     await page.waitForFunction(() => 'PrivacyKit' in window);
   });
 
-  test.only('Should auto-fill alias', async ({ page }) => {
+  test('Should auto-fill alias', async ({ page }) => {
     // mock authorization page
     await page.context().route('**/oauth/authorize*', (route) => {
       validateAuthorizationURL(route.request().url());

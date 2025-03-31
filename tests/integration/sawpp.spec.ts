@@ -14,7 +14,7 @@ test.describe('[Subscribe-Anonymously]', () => {
     await page.waitForFunction(() => 'PrivacyKit' in window);
   });
 
-  test.only('Should subscribe user', async ({ page }) => {
+  test('Should subscribe user', async ({ page }) => {
     // mock authorization page
     await page.context().route('**/oauth/authorize*', (route) => {
       validateAuthorizationURL(route.request().url());
