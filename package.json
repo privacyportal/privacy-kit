@@ -1,6 +1,6 @@
 {
   "name": "@privacyportal.org/privacy-kit",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "Lightweight and FOSS browser library bringing Privacy Portal features to your website users",
   "main": "./dist/privacy-kit.cjs.js",
