@@ -96,7 +96,7 @@ export async function authorize(
       codeChallenge,
       options,
     );
-    const popup = window.open(authURL, 'PrivacyPortalSSO');
+    const popup = window.open(authURL, 'PrivacyPortalSSO', 'top=0');
     if (!popup)
       throw new CustomError({
         message: 'Popup blocked. Please allow popups for this site.',
@@ -141,7 +141,7 @@ export async function authorize(
         authTimeout = setTimeout(
           () =>
             reject(new CustomError({ message: 'Authorization timed out.' })),
-          60000,
+          180000,
         );
       }) as Promise<never>,
     ]);
