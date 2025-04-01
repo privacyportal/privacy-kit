@@ -103,6 +103,7 @@ export async function authorize(
       });
 
     let authTimeout: number | undefined;
+    let popupWatchInterval: number | undefined;
 
     return await Promise.race([
       new Promise((resolve, reject) => {
@@ -114,6 +115,7 @@ export async function authorize(
 
             // Clear the timeout
             clearTimeout(authTimeout);
+            clearInterval(popupWatchInterval);
 
             const { code, state: returnedState } = event.data;
 
@@ -137,12 +139,20 @@ export async function authorize(
           false,
         );
       }) as Promise<{ id_token: string; access_token: string }>,
+      new Promise((resolve) => {
+        popupWatchInterval = setInterval(() => {
+          if (popup.closed) {
+            clearTimeout(authTimeout);
+            clearInterval(popupWatchInterval);
+            resolve(undefined);
+          }
+        }, 1000);
+      }) as Promise<undefined>,
       new Promise((_, reject) => {
-        authTimeout = setTimeout(
-          () =>
-            reject(new CustomError({ message: 'Authorization timed out.' })),
-          180000,
-        );
+        authTimeout = setTimeout(() => {
+          clearInterval(popupWatchInterval);
+          reject(new CustomError({ message: 'Authorization timed out.' }));
+        }, 180000);
       }) as Promise<never>,
     ]);
   } catch (err) {
