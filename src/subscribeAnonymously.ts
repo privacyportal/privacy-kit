@@ -18,8 +18,8 @@ const ACTIONABLE_SUB_ANON_BUTTON_SCOPE = filterEnabledScopes(
 );
 const EMAIL_INPUT_SCOPE = filterEnabledScopes(EMAIL_INPUT_SCOPES);
 const NAME_INPUT_SCOPES = filterEnabledScopes([
-  `${TEXT_INPUT_SCOPE}[id*=name]`,
-  `${TEXT_INPUT_SCOPE}[name*=name]`,
+  `${TEXT_INPUT_SCOPE}[id*="name" i]`,
+  `${TEXT_INPUT_SCOPE}[name*="name" i]`,
 ]);
 
 const buttonDelegate = delegate<HTMLButtonElement>(
