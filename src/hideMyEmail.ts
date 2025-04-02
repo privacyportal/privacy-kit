@@ -9,11 +9,12 @@ const DATALIST_SUGGESTION = '*****@pportal.io';
 export const TEXT_INPUT_SCOPE = 'input[type=text]';
 export const EMAIL_INPUT_SCOPES = [
   `input[type=email]`,
-  `${TEXT_INPUT_SCOPE}[id*=email]`,
-  `${TEXT_INPUT_SCOPE}[name*=email]`,
-  `${TEXT_INPUT_SCOPE}[name*=username]`,
-  `${TEXT_INPUT_SCOPE}[name*=login]`,
-  `${TEXT_INPUT_SCOPE}[placeholder*=email]`,
+  `${TEXT_INPUT_SCOPE}[id*="email" i]`,
+  `${TEXT_INPUT_SCOPE}[name*="email" i]`,
+  `${TEXT_INPUT_SCOPE}[name*="username" i]`,
+  `${TEXT_INPUT_SCOPE}[name*="login" i]`,
+  `${TEXT_INPUT_SCOPE}[placeholder*="email" i]`,
+  `${TEXT_INPUT_SCOPE}[placeholder*="e-mail" i]`,
 ];
 
 const INJECTABLE_EMAIL_INPUT_SCOPE = EMAIL_INPUT_SCOPES.map(
