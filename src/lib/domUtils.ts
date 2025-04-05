@@ -1,10 +1,16 @@
-export function delegate<T>(selector: string, closest?: boolean) {
+export function delegate<T>(
+  selector: string,
+  opts?: { closest?: boolean; shadow?: boolean },
+) {
   return (cb: (targetEl: T) => void) => {
     return (e: Event) => {
-      const target = e?.target as HTMLElement;
+      const target = (
+        opts?.shadow ? e?.composedPath()?.[0] : e?.target
+      ) as HTMLElement;
       if (target)
         return (
-          target[closest ? 'closest' : 'matches'](selector) && cb(target as T)
+          target[opts?.closest ? 'closest' : 'matches'](selector) &&
+          cb(target as T)
         );
     };
   };

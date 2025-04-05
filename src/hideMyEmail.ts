@@ -27,6 +27,10 @@ const isFirefoxAndroid = function (navigator: Navigator): boolean {
 };
 
 const inputDelegate = delegate<HTMLInputElement>(INJECTABLE_EMAIL_INPUT_SCOPE);
+const shadowInputDelegate = delegate<HTMLInputElement>(
+  INJECTABLE_EMAIL_INPUT_SCOPE,
+  { shadow: true },
+);
 
 async function injectDataList(inputElement: HTMLInputElement) {
   const datalistId = `pp-${window.crypto.randomUUID().substring(0, 8)}`;
@@ -193,6 +197,16 @@ function injectDataListOnFocus(containerElement: HTMLElement | Document) {
   }
 }
 
+function injectDataListOnShadowDom() {
+  document.addEventListener(
+    'click',
+    shadowInputDelegate((inputElement) => {
+      injectDataList(inputElement);
+    }),
+    true,
+  );
+}
+
 function injectDataListOnFocusWithinIFrames() {
   // inject datalist when focused on input elements inside iframes
   [...Array.from(document.querySelectorAll('iframe'))].map((iframe) => {
@@ -212,11 +226,13 @@ function injectDataListOnFocusWithinIFrames() {
 export function enableHideMyEmail() {
   window.addEventListener('load', () => {
     detectAndInjectDataList();
+    injectDataListOnShadowDom();
     injectDataListOnFocusWithinIFrames();
   });
 
   if (document.readyState === 'complete') {
     detectAndInjectDataList();
+    injectDataListOnShadowDom();
     injectDataListOnFocusWithinIFrames();
   }
 }
