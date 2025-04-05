@@ -24,7 +24,7 @@ const NAME_INPUT_SCOPES = filterEnabledScopes([
 
 const buttonDelegate = delegate<HTMLButtonElement>(
   ACTIONABLE_SUB_ANON_BUTTON_SCOPE,
-  true,
+  { closest: true },
 );
 
 async function handleSubscribeEvent(buttonElement: HTMLButtonElement) {
