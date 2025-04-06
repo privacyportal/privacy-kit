@@ -36,3 +36,41 @@ export function isElementDisplayed(element: HTMLElement): boolean {
 export function filterEnabledScopes(scopes: string[]): string {
   return scopes.map((scope) => `${scope}:not(:disabled)`).join(', ');
 }
+
+export function bindVisibilityToInputFocus(
+  inputElement: HTMLInputElement,
+  elementToBind: HTMLElement,
+) {
+  // handle show and hide
+  inputElement.addEventListener('focusin', () => {
+    elementToBind.style.visibility = 'visible';
+  });
+
+  // handle focusout using click event to ensure lists have precedence
+  document.addEventListener(
+    'click',
+    (e) => {
+      if (elementToBind.style.visibility === 'visible') {
+        const rect = inputElement.getBoundingClientRect();
+        if (
+          e.clientY < rect.top ||
+          e.clientY > rect.bottom ||
+          e.clientX < rect.left ||
+          e.clientX > rect.right
+        ) {
+          elementToBind.style.visibility = 'hidden';
+        }
+      }
+    },
+    true,
+  );
+}
+
+export function bindAbsolutePositionToViewPort(updatePosition: () => void) {
+  updatePosition();
+  if ('visualViewport' in window) {
+    window.visualViewport?.addEventListener('resize', updatePosition);
+  } else {
+    (window as Window).addEventListener('resize', updatePosition);
+  }
+}
