@@ -1,10 +1,19 @@
-import { delegate, isElementDisplayed, setInputValue } from './lib/domUtils.js';
+import {
+  bindAbsolutePositionToViewPort,
+  bindVisibilityToInputFocus,
+  delegate,
+  isElementDisplayed,
+  setInputValue,
+} from './lib/domUtils.js';
 import { displayError } from './lib/errors.js';
 import { getUserInfo } from './lib/mailRelay.js';
+import hmeLogo from './lib/assets/hmeLogo.js';
+import { isFirefoxAndroid, isFirefox } from './lib/uaUtils.js';
 
 let detectedInput: HTMLInputElement;
 
 const DATALIST_SUGGESTION = '*****@pportal.io';
+const HME_LABEL = 'Hide my Email';
 
 export const TEXT_INPUT_SCOPE = 'input[type=text]';
 export const EMAIL_INPUT_SCOPES = [
@@ -21,23 +30,25 @@ const INJECTABLE_EMAIL_INPUT_SCOPE = EMAIL_INPUT_SCOPES.map(
   (scope) => `${scope}:not([data-pp])`,
 ).join(', ');
 
-const isFirefoxAndroid = function (navigator: Navigator): boolean {
-  const ua = navigator.userAgent.toLowerCase();
-  return ua.indexOf('firefox') > -1 && ua.indexOf('android') > -1;
-};
-
 const inputDelegate = delegate<HTMLInputElement>(INJECTABLE_EMAIL_INPUT_SCOPE);
 const shadowInputDelegate = delegate<HTMLInputElement>(
   INJECTABLE_EMAIL_INPUT_SCOPE,
   { shadow: true },
 );
 
+async function handleHME(inputElement: HTMLInputElement) {
+  inputElement.value = '';
+  detectedInput = inputElement;
+  const { email } = await getUserInfo();
+  setInputValue(detectedInput, email);
+}
+
 async function injectDataList(inputElement: HTMLInputElement) {
   const datalistId = `pp-${window.crypto.randomUUID().substring(0, 8)}`;
 
   if (isFirefoxAndroid(navigator)) {
     const option = document.createElement('li');
-    option.innerText = 'Hide my Email';
+    option.innerText = HME_LABEL;
     option.style.padding = '3px';
     option.style.cursor = 'pointer';
 
@@ -52,71 +63,32 @@ async function injectDataList(inputElement: HTMLInputElement) {
     list.style.boxShadow = '0 2px 2px #999';
     list.style.fontSize = 'small';
     list.style.zIndex = '1000';
-    list.style.padding = '0px';
-    list.style.margin = '0px';
+    list.style.padding = list.style.margin = '0px';
 
     list.appendChild(option);
-
-    const positionList = function () {
-      const { left, width, bottom } = inputElement.getBoundingClientRect();
-      list.style.top = bottom + 'px';
-      list.style.left = left + 'px';
-      list.style.width = width + 'px';
-    };
 
     document.body.appendChild(list);
 
     // add input element attribute to only apply once
     inputElement.setAttribute('data-pp', '');
 
-    // position the list
-    positionList();
-    if ('visualViewport' in window) {
-      window.visualViewport?.addEventListener('resize', positionList);
-    } else {
-      (window as Window).addEventListener('resize', positionList);
-    }
+    bindAbsolutePositionToViewPort(function () {
+      const { left, width, bottom } = inputElement.getBoundingClientRect();
+      list.style.top = bottom + 'px';
+      list.style.left = left + 'px';
+      list.style.width = width + 'px';
+    });
 
     // handle show and hide
-    inputElement.addEventListener('focusin', () => {
-      list.style.visibility = 'visible';
-    });
-    inputElement.addEventListener('focusout', () => {
-      // delay to ensure click event is triggered
-      setTimeout(() => {
-        list.style.visibility = 'hidden';
-      }, 0);
-    });
-
-    // handle focusout using click event to ensure lists have precedence
-    document.addEventListener(
-      'click',
-      (e) => {
-        if (list.style.visibility === 'visible') {
-          const rect = inputElement.getBoundingClientRect();
-          if (
-            e.clientY < rect.top ||
-            e.clientY > rect.bottom ||
-            e.clientX < rect.left ||
-            e.clientX > rect.right
-          ) {
-            list.style.visibility = 'hidden';
-          }
-        }
-      },
-      true,
-    );
+    bindVisibilityToInputFocus(inputElement, list);
 
     // handle selection
     option.addEventListener('click', async (e) => {
       try {
         e.preventDefault();
         e.stopPropagation();
-        inputElement.value = '';
-        detectedInput = inputElement;
         list.style.visibility = 'hidden';
-        const { email } = await getUserInfo();
-        setInputValue(detectedInput, email);
+        await handleHME(inputElement);
       } catch (err) {
         displayError(err);
       }
@@ -126,7 +98,7 @@ async function injectDataList(inputElement: HTMLInputElement) {
     const option = document.createElement('option');
     option.setAttribute('id', 'new-privacy-addr');
     option.setAttribute('value', DATALIST_SUGGESTION);
-    option.textContent = 'Hide my Email';
+    option.textContent = HME_LABEL;
 
     let datalist;
 
@@ -153,6 +125,40 @@ async function injectDataList(inputElement: HTMLInputElement) {
 
     // add input element attribute to only apply once
     inputElement.setAttribute('data-pp', '');
+
+    // add logo btn to inputs on firefox
+    if (isFirefox(navigator)) {
+      const btn = document.createElement('button');
+      btn.style.display = 'block';
+      btn.style.position = 'absolute';
+      btn.style.zIndex = '1000';
+      btn.style.borderWidth = btn.style.padding = btn.style.margin = '0px';
+      btn.style.borderRadius = '15px';
+      btn.style.visibility = 'hidden';
+      btn.title = HME_LABEL;
+
+      bindAbsolutePositionToViewPort(function () {
+        const { top, right, height } = inputElement.getBoundingClientRect();
+        btn.style.width = btn.style.height = (height * 0.7).toFixed(2) + 'px';
+        btn.style.top = (top + height * 0.15).toFixed(2) + 'px';
+        btn.style.right =
+          (window.innerWidth - right + height * 0.15).toFixed(2) + 'px';
+      });
+
+      btn.appendChild(hmeLogo());
+      document.body.appendChild(btn);
+
+      // handle show and hide
+      bindVisibilityToInputFocus(inputElement, btn);
+
+      btn.onclick = async () => {
+        try {
+          await handleHME(inputElement);
+        } catch (err) {
+          displayError(err);
+        }
+      };
+    }
   }
 
   // listen to datalist selection (needs update in the future when datalist supports event listeners)
@@ -162,10 +168,7 @@ async function injectDataList(inputElement: HTMLInputElement) {
         inputElement.value === '@' ||
         inputElement.value === DATALIST_SUGGESTION
       ) {
-        inputElement.value = '';
-        detectedInput = inputElement;
-        const { email } = await getUserInfo();
-        setInputValue(detectedInput, email);
+        await handleHME(inputElement);
       }
     } catch (err) {
       displayError(err);
