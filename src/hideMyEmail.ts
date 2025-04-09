@@ -1,7 +1,9 @@
 import {
-  bindAbsolutePositionToViewPort,
+  attachShadowDomToFirstCompatibleAncestor,
+  bindShadowElementPosition,
   bindVisibilityToInputFocus,
   delegate,
+  fmtPixelDimension,
   isElementDisplayed,
   setInputValue,
 } from './lib/domUtils.js';
@@ -47,6 +49,9 @@ async function injectDataList(inputElement: HTMLInputElement) {
   const datalistId = `pp-${window.crypto.randomUUID().substring(0, 8)}`;
 
   if (isFirefoxAndroid(navigator)) {
+    const { ancestor, shadowRoot } =
+      await attachShadowDomToFirstCompatibleAncestor(inputElement);
+
     const option = document.createElement('li');
     option.innerText = HME_LABEL;
     option.style.padding = '3px';
@@ -59,40 +64,52 @@ async function injectDataList(inputElement: HTMLInputElement) {
     list.style.maxHeight = '300px';
     list.style.overflowY = 'auto';
     list.style.listStyle = 'none';
-    list.style.background = 'white';
+    list.style.backgroundColor = 'Canvas';
+    list.style.color = 'CanvasText';
+    list.style.colorScheme = 'light dark';
     list.style.boxShadow = '0 2px 2px #999';
     list.style.fontSize = 'small';
     list.style.zIndex = '1000';
+    list.style.opacity = '0';
     list.style.padding = list.style.margin = '0px';
 
     list.appendChild(option);
 
-    document.body.appendChild(list);
+    const style = document.createElement('style');
+    style.textContent = `li:hover{background-color:ButtonFace;color:ButtonText;}`;
+
+    // Add list to shadow DOM
+    shadowRoot.append(style, list);
+
+    bindShadowElementPosition(inputElement, ancestor, () => {
+      // update button position
+      const inputRect = inputElement.getBoundingClientRect();
+      const parentRect = ancestor.getBoundingClientRect();
+      list.style.width = fmtPixelDimension(inputRect.width);
+      list.style.top = fmtPixelDimension(inputRect.bottom - parentRect.top, {
+        toFixed: 2,
+      });
+      list.style.left = fmtPixelDimension(inputRect.left - parentRect.left, {
+        toFixed: 2,
+      });
+    });
 
     // add input element attribute to only apply once
     inputElement.setAttribute('data-pp', '');
 
-    bindAbsolutePositionToViewPort(function () {
-      const { left, width, bottom } = inputElement.getBoundingClientRect();
-      list.style.top = bottom + 'px';
-      list.style.left = left + 'px';
-      list.style.width = width + 'px';
-    });
+    option.onmousedown = (e) => {
+      // keep the focus on the input field
+      e.preventDefault();
+    };
+
+    // handle selection
+    option.onclick = async () => {
+      list.style.opacity = '0';
+      await handleHME(inputElement).catch(displayError);
+    };
 
     // handle show and hide
     bindVisibilityToInputFocus(inputElement, list);
-
-    // handle selection
-    option.addEventListener('click', async (e) => {
-      try {
-        e.preventDefault();
-        e.stopPropagation();
-        list.style.visibility = 'hidden';
-        await handleHME(inputElement);
-      } catch (err) {
-        displayError(err);
-      }
-    });
   } else {
     // create datalist option
     const option = document.createElement('option');
@@ -128,36 +145,76 @@ async function injectDataList(inputElement: HTMLInputElement) {
 
     // add logo btn to inputs on firefox
     if (isFirefox(navigator)) {
-      const btn = document.createElement('button');
-      btn.style.display = 'block';
-      btn.style.position = 'absolute';
-      btn.style.zIndex = '1000';
-      btn.style.borderWidth = btn.style.padding = btn.style.margin = '0px';
-      btn.style.borderRadius = '15px';
-      btn.style.visibility = 'hidden';
-      btn.title = HME_LABEL;
+      const { ancestor, shadowRoot } =
+        await attachShadowDomToFirstCompatibleAncestor(inputElement);
 
-      bindAbsolutePositionToViewPort(function () {
-        const { top, right, height } = inputElement.getBoundingClientRect();
-        btn.style.width = btn.style.height = (height * 0.7).toFixed(2) + 'px';
-        btn.style.top = (top + height * 0.15).toFixed(2) + 'px';
-        btn.style.right =
-          (window.innerWidth - right + height * 0.15).toFixed(2) + 'px';
+      // Create button element
+      const btn = document.createElement('button');
+      btn.title = HME_LABEL;
+      btn.ariaLabel = HME_LABEL;
+
+      Object.assign(btn.style, {
+        position: 'absolute',
+        border: 'none',
+        borderRadius: '15px',
+        cursor: 'pointer',
+        padding: '0',
+        margin: '0',
+        zIndex: '1000',
+        pointerEvents: 'auto',
+        right: '8px',
+        opacity: '0',
       });
 
       btn.appendChild(hmeLogo());
-      document.body.appendChild(btn);
 
-      // handle show and hide
-      bindVisibilityToInputFocus(inputElement, btn);
+      // Add elements to shadow DOM
+      shadowRoot.append(btn);
+
+      bindShadowElementPosition(inputElement, ancestor, () => {
+        // update button position
+        const rect = inputElement.getBoundingClientRect();
+        const parentRect = ancestor.getBoundingClientRect();
+        const paddingRight =
+          parseFloat(
+            window
+              .getComputedStyle(inputElement)
+              .getPropertyValue('padding-right'),
+          ) || 0;
+        btn.style.height = btn.style.width = fmtPixelDimension(
+          rect.height * 0.7,
+          { toFixed: 2 },
+        );
+        btn.style.top = fmtPixelDimension(
+          rect.top - parentRect.top + rect.height * 0.15,
+          { toFixed: 2 },
+        );
+        btn.style.right = fmtPixelDimension(
+          parentRect.right -
+            rect.right +
+            Math.max(paddingRight, rect.height * 0.15),
+          { toFixed: 2 },
+        );
+      });
+
+      btn.onmousedown = (e) => {
+        // keep the focus on the input field
+        e.preventDefault();
+      };
 
       btn.onclick = async () => {
         try {
+          btn.disabled = true;
           await handleHME(inputElement);
         } catch (err) {
           displayError(err);
+        } finally {
+          btn.disabled = false;
         }
       };
+
+      // handle show and hide
+      bindVisibilityToInputFocus(inputElement, btn);
     }
   }
 
@@ -181,9 +238,7 @@ export function detectAndInjectDataList() {
     document.querySelectorAll<HTMLInputElement>(INJECTABLE_EMAIL_INPUT_SCOPE),
   )) {
     if (isElementDisplayed(inputElement)) {
-      injectDataList(inputElement as HTMLInputElement).catch((e) => {
-        console.error(e);
-      });
+      injectDataList(inputElement as HTMLInputElement).catch(console.error);
     }
   }
 }
@@ -193,7 +248,7 @@ function injectDataListOnFocus(containerElement: HTMLElement | Document) {
     containerElement.addEventListener(
       'focusin',
       inputDelegate((inputElement: HTMLInputElement) => {
-        injectDataList(inputElement);
+        injectDataList(inputElement).catch(console.error);
       }),
       true,
     );
@@ -204,7 +259,7 @@ function injectDataListOnShadowDom() {
   document.addEventListener(
     'click',
     shadowInputDelegate((inputElement) => {
-      injectDataList(inputElement);
+      injectDataList(inputElement).catch(console.error);
     }),
     true,
   );

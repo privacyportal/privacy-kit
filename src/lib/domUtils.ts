@@ -41,36 +41,83 @@ export function bindVisibilityToInputFocus(
   inputElement: HTMLInputElement,
   elementToBind: HTMLElement,
 ) {
-  // handle show and hide
   inputElement.addEventListener('focusin', () => {
-    elementToBind.style.visibility = 'visible';
+    elementToBind.style.opacity = '1';
   });
 
-  // handle focusout using click event to ensure lists have precedence
+  inputElement.addEventListener('focusout', () => {
+    elementToBind.style.opacity = '0';
+  });
+
+  // handle click events also
   document.addEventListener(
     'click',
-    (e) => {
-      if (elementToBind.style.visibility === 'visible') {
-        const rect = inputElement.getBoundingClientRect();
-        if (
-          e.clientY < rect.top ||
-          e.clientY > rect.bottom ||
-          e.clientX < rect.left ||
-          e.clientX > rect.right
-        ) {
-          elementToBind.style.visibility = 'hidden';
-        }
-      }
+    () => {
+      elementToBind.style.opacity =
+        document.activeElement === (inputElement as Element) ? '1' : '0';
     },
     true,
   );
 }
 
-export function bindAbsolutePositionToViewPort(updatePosition: () => void) {
-  updatePosition();
-  if ('visualViewport' in window) {
-    window.visualViewport?.addEventListener('resize', updatePosition);
-  } else {
-    (window as Window).addEventListener('resize', updatePosition);
+export async function attachShadowDomToFirstCompatibleAncestor(
+  element: Element,
+): Promise<{
+  ancestor: HTMLElement;
+  shadowRoot: ShadowRoot;
+}> {
+  let ancestor = element.parentElement;
+  let shadowRoot;
+  while (ancestor) {
+    try {
+      shadowRoot =
+        ancestor.shadowRoot || ancestor.attachShadow({ mode: 'open' });
+
+      // style
+      const style = document.createElement('style');
+      style.textContent = `:host{position:relative;display:block;box-sizing:border-box;margin:0;padding:0;}`;
+
+      // Preserve original input in light DOM
+      const slot = document.createElement('slot');
+
+      shadowRoot.append(style, slot);
+    } catch {
+      /* do nothing */
+    }
+
+    if (shadowRoot) return { ancestor, shadowRoot };
+    ancestor = ancestor.parentElement;
   }
+  throw new Error('Failed to attach HME DOM.');
+}
+
+export function bindShadowElementPosition(
+  inputElement: HTMLInputElement,
+  ancestor: Element,
+  updatePosition: FrameRequestCallback,
+) {
+  let animationFrame: number = 0;
+  const debouncedUpdate = () => {
+    cancelAnimationFrame(animationFrame);
+    animationFrame = requestAnimationFrame(updatePosition);
+  };
+
+  // Handle dynamic updates
+  const observer = new ResizeObserver(debouncedUpdate);
+  observer.observe(inputElement);
+  observer.observe(ancestor);
+
+  // cleanup the observer at GC time
+  const registry = new FinalizationRegistry((observer: ResizeObserver) => {
+    observer.unobserve(inputElement);
+    observer.unobserve(ancestor);
+    observer.disconnect();
+  });
+
+  const weakRef = new WeakRef(inputElement);
+  registry.register(weakRef, observer);
+}
+
+export function fmtPixelDimension(amount: number, opts?: { toFixed?: number }) {
+  return (opts?.toFixed ? amount.toFixed(opts.toFixed) : amount) + 'px';
 }
