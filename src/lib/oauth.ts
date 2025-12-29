@@ -81,6 +81,7 @@ async function validateTokens({
 }
 
 export async function authorize(
+  popup: Window,
   options?: AuthorizationOpts,
 ): Promise<{ id_token: string; access_token: string } | undefined> {
   try {
@@ -91,16 +92,11 @@ export async function authorize(
     const codeVerifier = generatePKCECodeVerifier();
     const codeChallenge = await createPKCECodeChallenge(codeVerifier);
 
-    const authURL = config.createAuthorizationURL(
+    popup.location.href = config.createAuthorizationURL(
       state,
       codeChallenge,
       options,
     );
-    const popup = window.open(authURL, 'PrivacyPortalSSO', 'top=0');
-    if (!popup)
-      throw new CustomError({
-        message: 'Popup blocked. Please allow popups for this site.',
-      });
 
     let authTimeout: number | undefined;
     let popupWatchInterval: number | undefined;

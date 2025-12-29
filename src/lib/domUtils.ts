@@ -1,3 +1,6 @@
+import config from './config';
+import { CustomError, displayError } from './errors';
+
 export function delegate<T>(
   selector: string,
   opts?: { closest?: boolean; shadow?: boolean },
@@ -120,4 +123,21 @@ export function bindShadowElementPosition(
 
 export function fmtPixelDimension(amount: number, opts?: { toFixed?: number }) {
   return (opts?.toFixed ? amount.toFixed(opts.toFixed) : amount) + 'px';
+}
+
+export function openPopupWindow(cb: (popup: Window) => void): void {
+  const popup = window.open(
+    config.authorization_url_placeholder,
+    'PrivacyPortalSSO',
+    'top=0',
+  );
+  if (popup) {
+    cb(popup);
+  } else {
+    displayError(
+      new CustomError({
+        message: 'Please allow popups in order to use Hide-my-Email.',
+      }),
+    );
+  }
 }

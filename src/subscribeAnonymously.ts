@@ -4,6 +4,7 @@ import {
   delegate,
   filterEnabledScopes,
   isElementDisplayed,
+  openPopupWindow,
   setInputValue,
 } from './lib/domUtils';
 import { displayError } from './lib/errors';
@@ -27,7 +28,10 @@ const buttonDelegate = delegate<HTMLButtonElement>(
   { closest: true },
 );
 
-async function handleSubscribeEvent(buttonElement: HTMLButtonElement) {
+async function handleSubscribeEvent(
+  buttonElement: HTMLButtonElement,
+  popup: Window,
+) {
   try {
     const formEl = buttonElement.closest('form');
     if (!formEl) return;
@@ -50,7 +54,7 @@ async function handleSubscribeEvent(buttonElement: HTMLButtonElement) {
       authorizationOpts = { name_scope_required: true };
     }
 
-    const { email, name } = await getUserInfo(authorizationOpts);
+    const { email, name } = await getUserInfo(popup, authorizationOpts);
 
     if (
       setInputValue(emailInputEl, email) &&
@@ -70,7 +74,9 @@ function listenToButtonPress(containerElement: HTMLElement | Document) {
     containerElement.addEventListener(
       'click',
       buttonDelegate((buttonElement: HTMLButtonElement) => {
-        handleSubscribeEvent(buttonElement);
+        openPopupWindow((popup) => {
+          handleSubscribeEvent(buttonElement, popup);
+        });
       }),
       true,
     );
