@@ -44,8 +44,8 @@ PrivacyKit.run({
 ```html
 <!-- Specific version with SRI -->
 <script 
-  src="https://cdn.jsdelivr.net/npm/@privacyportal.org/privacy-kit@0.1.6/dist/privacy-kit.umd.js"
-  integrity="sha384-Cgp+UAQtl4xg4oLDL4kOKEhfn4PSUjdzw4Z29qFM+S1l4lm0im8l3hK0sq1wRRq4"
+  src="https://cdn.jsdelivr.net/npm/@privacyportal.org/privacy-kit@0.1.7/dist/privacy-kit.umd.js"
+  integrity="sha384-WAW40D5Nq5hUfnvpe3IVBngeeelHvJk6H8pB403oNGQHRGZs8QbSXLktXfrdsHsb"
   crossorigin="anonymous"
 ></script>
 
