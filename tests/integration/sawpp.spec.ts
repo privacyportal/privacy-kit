@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test';
 import { GET_OAUTH_POPUP_RESPONSE, mockIdToken } from '../mocks/oauth';
 import { MOCK_ALIAS } from '../lib/constants';
 import {
-  validateAuthorizationURL,
+  getSearchParams,
+  validateAuthorizationURLSearchParams,
   validateTokenReqData,
 } from '../lib/oauthHelpers';
 
@@ -16,9 +17,13 @@ test.describe('[Subscribe-Anonymously]', () => {
 
   test('Should subscribe user', async ({ page }) => {
     // mock authorization page
-    await page.context().route('**/oauth/authorize*', (route) => {
-      validateAuthorizationURL(route.request().url());
-      route.fulfill(GET_OAUTH_POPUP_RESPONSE);
+    await page.context().route('**/oauth/authorize*', async (route) => {
+      const url = new URL(route.request().url());
+      const searchParams = getSearchParams(url);
+      if (!searchParams.has('loading')) {
+        validateAuthorizationURLSearchParams(searchParams);
+        route.fulfill(GET_OAUTH_POPUP_RESPONSE);
+      }
     });
 
     // mock token api call

@@ -46,12 +46,16 @@ class Config {
     this._name_scope_required = name_scope_required;
   }
 
-  get redirect_uri() {
+  get redirect_uri(): string {
     return window.location.origin;
   }
 
-  get authorization_origin() {
+  get authorization_origin(): string {
     return new URL(AUTHORIZATION_URL).origin;
+  }
+
+  get authorization_url_placeholder(): string {
+    return `${AUTHORIZATION_URL}?loading`;
   }
 
   getNameScopeRequired(options?: AuthorizationOpts): boolean {

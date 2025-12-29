@@ -5,12 +5,13 @@ import {
   delegate,
   fmtPixelDimension,
   isElementDisplayed,
+  openPopupWindow,
   setInputValue,
 } from './lib/domUtils.js';
 import { displayError } from './lib/errors.js';
 import { getUserInfo } from './lib/mailRelay.js';
 import hmeLogo from './lib/assets/hmeLogo.js';
-import { isFirefoxAndroid, isFirefox } from './lib/uaUtils.js';
+import { isFirefoxAndroid, isFirefox, isSafari } from './lib/uaUtils.js';
 
 let detectedInput: HTMLInputElement;
 
@@ -38,17 +39,17 @@ const shadowInputDelegate = delegate<HTMLInputElement>(
   { shadow: true },
 );
 
-async function handleHME(inputElement: HTMLInputElement) {
+async function handleHME(inputElement: HTMLInputElement, popup: Window) {
   inputElement.value = '';
   detectedInput = inputElement;
-  const { email } = await getUserInfo();
+  const { email } = await getUserInfo(popup);
   setInputValue(detectedInput, email);
 }
 
 async function injectDataList(inputElement: HTMLInputElement) {
   const datalistId = `pp-${window.crypto.randomUUID().substring(0, 8)}`;
 
-  if (isFirefoxAndroid(navigator)) {
+  if (isFirefoxAndroid(navigator) || isSafari(navigator)) {
     const { ancestor, shadowRoot } =
       await attachShadowDomToFirstCompatibleAncestor(inputElement);
 
@@ -103,9 +104,11 @@ async function injectDataList(inputElement: HTMLInputElement) {
     };
 
     // handle selection
-    option.onclick = async () => {
-      list.style.opacity = '0';
-      await handleHME(inputElement).catch(displayError);
+    option.onclick = () => {
+      openPopupWindow((popup) => {
+        list.style.opacity = '0';
+        handleHME(inputElement, popup).catch(displayError);
+      });
     };
 
     // handle show and hide
@@ -202,15 +205,15 @@ async function injectDataList(inputElement: HTMLInputElement) {
         e.preventDefault();
       };
 
-      btn.onclick = async () => {
-        try {
+      btn.onclick = () => {
+        openPopupWindow((popup) => {
           btn.disabled = true;
-          await handleHME(inputElement);
-        } catch (err) {
-          displayError(err);
-        } finally {
-          btn.disabled = false;
-        }
+          handleHME(inputElement, popup)
+            .catch(displayError)
+            .finally(() => {
+              btn.disabled = false;
+            });
+        });
       };
 
       // handle show and hide
@@ -219,16 +222,14 @@ async function injectDataList(inputElement: HTMLInputElement) {
   }
 
   // listen to datalist selection (needs update in the future when datalist supports event listeners)
-  inputElement.addEventListener('input', async () => {
-    try {
-      if (
-        inputElement.value === '@' ||
-        inputElement.value === DATALIST_SUGGESTION
-      ) {
-        await handleHME(inputElement);
-      }
-    } catch (err) {
-      displayError(err);
+  inputElement.addEventListener('input', () => {
+    if (
+      inputElement.value === '@' ||
+      inputElement.value === DATALIST_SUGGESTION
+    ) {
+      openPopupWindow((popup) => {
+        handleHME(inputElement, popup).catch(displayError);
+      });
     }
   });
 }

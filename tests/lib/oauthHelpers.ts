@@ -1,14 +1,21 @@
 import { expect } from '@playwright/test';
 import { PORT } from './constants';
 
-export function validateAuthorizationURL(
-  url: string,
+export function getSearchParams(url: URL) {
+  return url.hash?.length
+    ? new URLSearchParams(url?.hash.substring(1))
+    : url.searchParams;
+}
+
+export function validateAuthorizationURLSearchParams(
+  searchParams: URLSearchParams,
   opts?: { scope?: string },
 ) {
-  const { searchParams } = new URL(url);
-
   for (const key of ['client_id', 'nonce', 'state', 'code_challenge']) {
-    expect(searchParams.get(key)).toBeDefined();
+    expect(
+      searchParams.has(key),
+      `authorization URL must have param "${key}".`,
+    ).toBeTruthy();
   }
 
   expect(Object.fromEntries(searchParams.entries())).toMatchObject({

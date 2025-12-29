@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test';
 import { GET_OAUTH_POPUP_RESPONSE, mockIdToken } from '../mocks/oauth';
 import { HME_DATALIST_OPT, MOCK_ALIAS } from '../lib/constants';
 import {
-  validateAuthorizationURL,
+  getSearchParams,
+  validateAuthorizationURLSearchParams,
   validateTokenReqData,
 } from '../lib/oauthHelpers';
 
@@ -14,11 +15,15 @@ test.describe('[Hide-My-Email]', () => {
     await page.waitForFunction(() => 'PrivacyKit' in window);
   });
 
-  test('Should auto-fill alias', async ({ page }) => {
+  test('Should auto-fill alias', async ({ page, browserName }) => {
     // mock authorization page
-    await page.context().route('**/oauth/authorize*', (route) => {
-      validateAuthorizationURL(route.request().url());
-      route.fulfill(GET_OAUTH_POPUP_RESPONSE);
+    await page.context().route('**/oauth/authorize*', async (route) => {
+      const url = new URL(route.request().url());
+      const searchParams = getSearchParams(url);
+      if (!searchParams.has('loading')) {
+        validateAuthorizationURLSearchParams(searchParams);
+        route.fulfill(GET_OAUTH_POPUP_RESPONSE);
+      }
     });
 
     // mock token api call
@@ -36,18 +41,20 @@ test.describe('[Hide-My-Email]', () => {
     // find email input
     const input = page.locator('#form-field-email');
 
-    // ensure the datalist is set
-    const datalistId = await input.getAttribute('list');
-    expect(datalistId).toMatch(/^pp-[a-fA-F0-9]{8}$/);
-    const datalist = page.locator(`#${datalistId}`);
-    await expect(datalist).toBeAttached();
+    if (browserName !== 'webkit') {
+      // ensure the datalist is set
+      const datalistId = await input.getAttribute('list');
+      expect(datalistId).toMatch(/^pp-[a-fA-F0-9]{8}$/);
+      const datalist = page.locator(`#${datalistId}`);
+      await expect(datalist).toBeAttached();
 
-    // ensure the datalist HME option is set
-    const firstOptionValue = await datalist
-      .locator('option')
-      .first()
-      .getAttribute('value');
-    expect(firstOptionValue).toBe(HME_DATALIST_OPT);
+      // ensure the datalist HME option is set
+      const firstOptionValue = await datalist
+        .locator('option')
+        .first()
+        .getAttribute('value');
+      expect(firstOptionValue).toBe(HME_DATALIST_OPT);
+    }
 
     // Trigger HME
     await input.fill('@');
